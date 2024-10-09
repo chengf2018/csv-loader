@@ -75,8 +75,7 @@ static void reservevaluevec(csv_valuevec *valuevec) {
 		csv_value *values = myrealloc(valuevec->values,
 									sizeof(csv_value) * oldsize,
 									sizeof(csv_value) * valuevec->size);
-		memset(values + oldsize, 0, sizeof(csv_value) * 
-									(valuevec->size - oldsize));
+		memset(values + oldsize, 0, sizeof(csv_value) * oldsize);
 		valuevec->values = values;
 	}
 }
