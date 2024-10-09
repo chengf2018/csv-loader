@@ -59,7 +59,13 @@ int lloadcsv(lua_State *L) {
 	if (err != 0) {
 		Csv_FreeLine(&firstline);
 		Csv_Close(&parse);
-		luaL_error(L, "[csvloader.loadcsv]: open csv [%s] error[%d]", filename, err);
+		luaL_error(L, "[csvloader.loadcsv]: parse csv [%s] error[%d]", filename, err);
+	}
+
+	if (parse.colnum == 0) {
+		Csv_FreeLine(&firstline);
+		Csv_Close(&parse);
+		luaL_error(L, "[csvloader.loadcsv]: parse csv [%s] error, colnum is 0.", filename);
 	}
 
 	lua_newtable(L);
@@ -94,6 +100,21 @@ int lloadcsv(lua_State *L) {
 				Csv_Close(&parse);
 				luaL_error(L, "[csvloader.loadcsv]:[%s]invalid value:[%d], curline:[%d],field:[%d]", filename, keyvalue->type, parse.loadf.curline, 1);
 			}
+
+			lua_pushvalue(L, -1);
+			int type = lua_rawget(L, -3);
+			if (type != LUA_TNIL) {
+				Csv_FreeLine(&firstline);
+				Csv_FreeLine(&templine);
+				Csv_Close(&parse);
+				if (keyvalue->type == TYPE_INT) {
+					luaL_error(L, "[csvloader.loadcsv]:[%s]repeated id:[%d]", filename, keyvalue->intvalue);
+				} else {
+					luaL_error(L, "[csvloader.loadcsv]:[%s]repeated id:[%s]", filename, keyvalue->stringvalue);
+				}
+			}
+			lua_pop(L, 1);
+
 			lua_newtable(L);
 			
 			for (colindex=0; colindex<templine.valuevec.n; colindex++) {
